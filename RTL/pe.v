@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module pe #(
     parameter DATA_WIDTH = 8,
     parameter ACC_WIDTH = 2 * DATA_WIDTH + 1
