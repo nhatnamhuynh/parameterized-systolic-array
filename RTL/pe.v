@@ -10,7 +10,7 @@ module pe #(
     output reg [ACC_WIDTH - 1: 0] acc_out
 );
     
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk, posedge rst) begin
         if (rst) begin
             row_out <= {DATA_WIDTH {1'b0}};
             col_out <= {DATA_WIDTH {1'b0}};
