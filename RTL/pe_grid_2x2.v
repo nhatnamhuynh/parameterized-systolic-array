@@ -18,7 +18,7 @@ module pe_grid_2x2 # (
         
     pe pe1 (
         .clk(clk), .rst(rst), .clr(clr),
-        .row_in(row_01), .row_out(row_out_0),
+        .row_in(row_01), .row_out(),
         .col_in(col_in_1), .col_out(col_13),
         .acc_out(acc_out_1)
         );
@@ -26,14 +26,14 @@ module pe_grid_2x2 # (
     pe pe2 (
         .clk(clk), .rst(rst), .clr(clr),
         .row_in(row_in_1), .row_out(row_23),
-        .col_in(col_02), .col_out(col_out_0),
+        .col_in(col_02), .col_out(),
         .acc_out(acc_out_2)
         );
         
      pe pe3 (
         .clk(clk), .rst(rst), .clr(clr),
-        .row_in(row_23), .row_out(row_out_1),
-        .col_in(col_13), .col_out(col_out_1),
+        .row_in(row_23), .row_out(),
+        .col_in(col_13), .col_out(),
         .acc_out(acc_out_3)
         );      
     
