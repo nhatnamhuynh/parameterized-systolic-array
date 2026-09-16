@@ -18,9 +18,9 @@ module pe #(
             col_out <= col_in;
 
             if (clr) begin
-                acc_out <= row_in * col_in;
+                acc_out <= $signed(row_in) * $signed(col_in);
             end else begin
-                acc_out <= acc_out + row_in * col_in;
+                acc_out <= $signed(acc_out) + $signed(row_in) * $signed(col_in);
             end
         end
     end
