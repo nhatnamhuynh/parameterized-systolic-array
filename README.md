@@ -21,13 +21,13 @@ The hierarchy design is divided into 3 levels:
 | :--- | :---: | :--- |
 | `clk` / `rst`/`en` | 1-bit | Global clock, active-HIGH synchronous reset, and active-HIGH enable signal. |
 | `ready` | 1-bit | End of execution flag. |
-| `inA_flat` / `inB_flat` | 32-bit | Input matrices, flattened into a little-endian vector. |
+| `inA_flat` / `inB_flat` | 32-bit | Input matrices, flattened into a little-endian vectors. |
 | `acc_out_0`, `acc_out_1`, `acc_out_2`, `acc_out_3` | 17-bit | Entries of resulting matrix. |
 
 ### 2.3. System Workflow
 The top module controls the whole execution following these steps:
 1. Receive `en` signal, clear current results, load input matrices into each row/col data registers with designated order. Higher-indexed rows/cols have padding zeros to wait for the previous to enter the array.
-2. Execution begins, and data starts flowing. Each PEs multiplies, accumulates and passes data to the next one, from upper left to lower right.
+2. Execution begins and data starts flowing. Each PEs multiplies, accumulates and passes data to the next one, from upper left to lower right.
 3. Internal `counter` variable increments after each clock cycle until reaching 4. Afterwards, it resets back to zero, `ready` signal goes high to indicate that output matrix is available.
 4. The system comes to IDLE state, waiting for the next multiplication to be enabled.
 ---
@@ -35,10 +35,12 @@ The table below summerize the operations during each cycle.
 
 | `counter` | Action | Data Input State | `clr` | `ready` |
 | :---: | :--- | :--- | :---: | :---: |
-| 0 | **IDLE** | Wait for `en` signal | `1'b1` | `1'b1` |
+| 0 | **IDLE** | Wait for `en` signal | `1'b0` | `1'b1` |
 | 1 | **Latch & Skew** | Latch inputs; send $a_{00}, b_{00}$; zero-pad higher rows/cols | `1'b1` | `1'b0` |
-| 2 – 3 | **Compute & Shift** | Shift `temp_row` and `temp_col` into PE grid | `1'b0` | `1'b0` |
-| 4 $\rightarrow$ 0 | **Done** | Last accumulation; reset counter | `1'b0` | `1'b1` |
+| 2/3 | **Compute & Shift** | Shift `temp_row` and `temp_col` into PE grid | `1'b0` | `1'b0` |
+| 4 | **Done** | Last accumulation; reset counter | `1'b0` | `1'b0` |
+
+---
 
 ## 3. Code Tree
 
