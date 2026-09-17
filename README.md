@@ -31,7 +31,7 @@ The top module controls the whole execution following these steps:
 3. Internal `counter` variable increments after each clock cycle until reaching 4. Afterwards, it resets back to zero, `ready` signal goes high to indicate that output matrix is available.
 4. The system comes to IDLE state, waiting for the next multiplication to be enabled.
 ---
-The table below summerize the operations during each cycle.
+The table below summerizes the operations during each cycle.
 
 | `counter` | Action | Data Input State | `clr` | `ready` |
 | :---: | :--- | :--- | :---: | :---: |
