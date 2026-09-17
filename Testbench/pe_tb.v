@@ -33,11 +33,11 @@ module pe_tb;
             $display ("--- %s ---", test);
             $display ("--- EXPECTED VALUE ---");
             $display ("rst = %b \t clr = %b \t row_in = %3d \t col_in = %3d \t row_out = %3d \t col_out = %3d \t acc_out = %6d",
-                      expected_rst, expected_clr, expected_row_in, expected_col_in,
-                      expected_row_out, expected_col_out, expected_acc_out);
+                      expected_rst, expected_clr, $signed(expected_row_in), $signed(expected_col_in),
+                      $signed(expected_row_out), $signed(expected_col_out), $signed(expected_acc_out));
             $display ("--- RECEIVED VALUE ---");
             $display ("rst = %b \t clr = %b \t row_in = %3d \t col_in = %3d \t row_out = %3d \t col_out = %3d \t acc_out = %6d",
-                      rst, clr, row_in, col_in, row_out, col_out, acc_out);
+                      rst, clr, $signed(row_in), $signed(col_in), $signed(row_out), $signed(col_out), $signed(acc_out));
             
             if (rst !== expected_rst || clr !== expected_clr || row_in !== expected_row_in || col_in !== expected_col_in ||
                 row_out !== expected_row_out || col_out !== expected_col_out || acc_out !== expected_acc_out) begin
@@ -81,15 +81,27 @@ module pe_tb;
 
         // Test 5: Load max values with clear
         rst = 0; clr = 1;
-        row_in = 8'd255; col_in = 8'd255;
-        @(posedge clk); #1;
-        print_results("Test 5", 1'b0, 1'b1, 8'd255, 8'd255, 8'd255, 8'd255, 17'd65025);
+            row_in = 8'd127; col_in = 8'd127;
+            @(posedge clk); #1;
+            print_results("Test 5", 1'b0, 1'b1, 8'd127, 8'd127, 8'd127, 8'd127, 17'd16129);
 
         // Test 6: Accumulate max values
         rst = 0; clr = 0;
-        row_in = 8'd255; col_in = 8'd255;
+        row_in = 8'd127; col_in = 8'd127;
         @(posedge clk); #1;
-        print_results("Test 6", 1'b0, 1'b0, 8'd255, 8'd255, 8'd255, 8'd255, 17'd130050);
+        print_results("Test 6", 1'b0, 1'b0, 8'd127, 8'd127, 8'd127, 8'd127, 17'd32258);
+
+        // Test 7: Negative values
+        rst = 0; clr = 1;
+        row_in = -8'd124; col_in = 8'd57;
+        @(posedge clk); #1;
+        print_results("Test 7", 1'b0, 1'b1, -8'd124, 8'd57, -8'd124, 8'd57, -17'd7068);
+
+        // Test 8: Maximum negative values
+        rst = 0; clr = 1;
+        row_in = -8'd128; col_in = -8'd128;
+        @(posedge clk); #1;
+        print_results("Test 8", 1'b0, 1'b1, -8'd128, -8'd128, -8'd128, -8'd128, 17'd16384);
 
         $finish;
     end
