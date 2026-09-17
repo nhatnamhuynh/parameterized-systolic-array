@@ -5,7 +5,7 @@
 ![Type](https://img.shields.io/badge/Type-Hardware%20Accelerator-green.svg)
 
 ## 1. Introduction
-**Systolic Array** is an architecture that consists of multiple processing units (PEs). These PEs operate simultaneously and pass data to their neighbors, forming a system that works rhythmically. In this project, we implement a 2x2 matrix multiplier using systolic workflow, allowing total operating time to decrease significantly compared to sequential methods. Additionally, this module is scalable for further projects that require matrix multiplication with $2^n$ dimensions.
+**Systolic Array** is an architecture that consists of multiple processing units (PEs). These PEs operate simultaneously and pass data to their neighbors, forming a system that works rhythmically. In this project, we implement a 2x2 matrix multiplier using systolic workflow, featuring 4 Multiply-Accumulate (MAC) processing elements. This design allows total operating time to decrease significantly compared to sequential methods. Additionally, the module is scalable for further projects that require matrix multiplication with $2^n$ dimensions.
 
 --- 
 
