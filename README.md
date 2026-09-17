@@ -30,7 +30,7 @@ The top module controls the whole execution following these steps:
 2. Execution begins and data starts flowing. Each PEs multiplies, accumulates and passes data to the next one, from upper left to lower right.
 3. Internal `counter` variable increments after each clock cycle until reaching 4. Afterwards, it resets back to zero, `ready` signal goes high to indicate that output matrix is available.
 4. The system comes to IDLE state, waiting for the next multiplication to be enabled.
----
+
 The table below summerizes the operations during each cycle.
 
 | `counter` | Action | Data Input State | `clr` | `ready` |
