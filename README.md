@@ -55,7 +55,7 @@ systolic-array-2x2/
 │   ├── grid_tb.v
 │   └── pe_tb.v
 ├── Figure/
-│   └── hierarchy.png
+│   └── hierarchy.svg
 ├── Waveform/
 │   ├── top_waveform.png
 │   ├── grid_waveform.png
