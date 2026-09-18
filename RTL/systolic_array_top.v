@@ -15,15 +15,15 @@ module systolic_array_top #(
     wire [DATA_WIDTH - 1:0] inA [0:3];
     wire [DATA_WIDTH - 1:0] inB [0:3];
 
-    assign inA[0] = inA_flat[1*DATA_WIDTH-1 : 0*DATA_WIDTH];
-    assign inA[1] = inA_flat[2*DATA_WIDTH-1 : 1*DATA_WIDTH];
-    assign inA[2] = inA_flat[3*DATA_WIDTH-1 : 2*DATA_WIDTH];
-    assign inA[3] = inA_flat[4*DATA_WIDTH-1 : 3*DATA_WIDTH];
+    assign inA[0] = inA_flat[1 * DATA_WIDTH - 1 : 0 * DATA_WIDTH];
+    assign inA[1] = inA_flat[2 * DATA_WIDTH - 1 : 1 * DATA_WIDTH];
+    assign inA[2] = inA_flat[3 * DATA_WIDTH - 1 : 2 * DATA_WIDTH];
+    assign inA[3] = inA_flat[4 * DATA_WIDTH - 1 : 3 * DATA_WIDTH];
 
-    assign inB[0] = inB_flat[1*DATA_WIDTH-1 : 0*DATA_WIDTH];
-    assign inB[1] = inB_flat[2*DATA_WIDTH-1 : 1*DATA_WIDTH];
-    assign inB[2] = inB_flat[3*DATA_WIDTH-1 : 2*DATA_WIDTH];
-    assign inB[3] = inB_flat[4*DATA_WIDTH-1 : 3*DATA_WIDTH];
+    assign inB[0] = inB_flat[1 * DATA_WIDTH - 1 : 0 * DATA_WIDTH];
+    assign inB[1] = inB_flat[2 * DATA_WIDTH - 1 : 1 * DATA_WIDTH];
+    assign inB[2] = inB_flat[3 * DATA_WIDTH - 1 : 2 * DATA_WIDTH];
+    assign inB[3] = inB_flat[4 * DATA_WIDTH - 1 : 3 * DATA_WIDTH];
 
     assign ready = (counter == 3'd0)?1'b1:1'b0;
 
@@ -41,7 +41,7 @@ module systolic_array_top #(
             row_in_1 <= {DATA_WIDTH{1'b0}};
             col_in_0 <= {DATA_WIDTH{1'b0}};
             col_in_1 <= {DATA_WIDTH{1'b0}};
-        end else if (en && counter == 3'd0) begin
+        end else if (en == 1'b1 && counter == 3'd0) begin
             clr <= 1'b1;
             counter <= counter + 3'd1;
             
@@ -56,7 +56,7 @@ module systolic_array_top #(
             temp_col_1 <= {inB[3], inB[1]};
         end else if (counter > 3'd0) begin   
             clr <= 1'b0;  
-            if (counter == 3'd4) counter <= 3'd0;
+            if (counter >= 3'd4) counter <= 3'd0;
             else counter <= counter + 3'd1;
             
             row_in_0 <= temp_row_0[DATA_WIDTH - 1:0]; 
