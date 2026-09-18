@@ -68,15 +68,16 @@ systolic-array-2x2/
 
 ## 4. Verification Workflow
 
-| Test ID | Test Name  | Verification Objective | Input Vectors ($A \times B$) | Expected Output ($C$) | Status |
-| :---: | :--- | :---  | :---: | :---: | :---: |
-| **TC_01** | Reset Signal | Verifies hardware reset clears all internal registers and outputs. | $\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \times \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, \text{rst}=1$ | $\begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$ | `PASS` |
-| **TC_02** | Basic Matrices  | Validates standard 2x2 matrix multiplication. | $\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \times \begin{bmatrix} 4 & 3 \\ 2 & 1 \end{bmatrix}$ | $\begin{bmatrix} 8 & 5 \\ 20 & 13 \end{bmatrix}$ | `PASS` |
-| **TC_03** | Zero Matrix | Verifies zero property ($A \times 0 = 0$). | $\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \times \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$ | $\begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix}$ | `PASS` |
-| **TC_04** | Identity Matrix | Verifies identity matrix property ($A \times I_2 = A$). | $\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \times \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ | $\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}$ | `PASS` |
-| **TC_05** | Inverse Matrix | Validates 2's complement negative values ($A \times A^{-1} = I_2$). | $\begin{bmatrix} 1 & 2 \\ 2 & 3 \end{bmatrix} \times \begin{bmatrix} -3 & 2 \\ 2 & -1 \end{bmatrix}$ | $\begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ | `PASS` |
-| **TC_06** | Enable Signal | Tests `en` disable logic mid-execution to ensure input latching integrity. | Ignores input updates when `en=0` (`ready` low) | Retains $\begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$ | `PASS` |
-| **TC_07** | Maximum Value | Verifies 17-bit accumulator overflow protection with max INT8 positive values (`+127`). | $\begin{bmatrix} 127 & 127 \\ 127 & 127 \end{bmatrix} \times \begin{bmatrix} 127 & 127 \\ 127 & 127 \end{bmatrix}$ | $\begin{bmatrix} 32258 & 32258 \\ 32258 & 32258 \end{bmatrix}$ | `PASS` |
-| **TC_08** | Minimum Value | Tests sign-extension and accumulator range with min INT8 negative values (`-128`). | $\begin{bmatrix} -128 & -128 \\ -128 & -128 \end{bmatrix} \times \begin{bmatrix} -128 & -128 \\ -128 & -128 \end{bmatrix}$ | $\begin{bmatrix} 32768 & 32768 \\ 32768 & 32768 \end{bmatrix}$ | `PASS` |
+
+| Test ID | Test Name | Verification Objective | Input Vectors ($A \times B$) | Expected Output ($C$) | Status |
+| :---: | :--- | :--- | :--- | :--- | :---: |
+| **TC_01** | Reset Signal | Verifies hardware reset clears all internal registers and outputs. | $A = [[1, 2], [3, 4]]$<br>$B = [[0, 1], [1, 0]]$, `rst=1` | $C = [[0, 0], [0, 0]]$ | `PASS` |
+| **TC_02** | Basic Matrices | Validates standard 2x2 matrix multiplication and input data skewing timing. | $A = [[1, 2], [3, 4]]$<br>$B = [[4, 3], [2, 1]]$ | $C = [[8, 5], [20, 13]]$ | `PASS` |
+| **TC_03** | Zero Matrix | Verifies zero property ($A \times 0 = 0$). | $A = [[1, 2], [3, 4]]$<br>$B = [[0, 0], [0, 0]]$ | $C = [[0, 0], [0, 0]]$ | `PASS` |
+| **TC_04** | Identity Matrix | Verifies identity matrix property ($A \times I_2 = A$). | $A = [[1, 2], [3, 4]]$<br>$B = [[1, 0], [0, 1]]$ | $C = [[1, 2], [3, 4]]$ | `PASS` |
+| **TC_05** | Inverse Matrix | Validates 2's complement negative values ($A \times A^{-1} = I_2$). | $A = [[1, 2], [2, 3]]$<br>$B = [[-3, 2], [2, -1]]$ | $C = [[1, 0], [0, 1]]$ | `PASS` |
+| **TC_06** | Enable Signal | Tests `en` disable logic mid-execution to ensure input latching integrity. | Ignores input updates when `en=0` (`ready` low) | Retains $C = [[1, 0], [0, 1]]$ | `PASS` |
+| **TC_07** | Maximum Value | Verifies 17-bit accumulator overflow protection with max INT8 positive values (`+127`). | $A = [[127, 127], [127, 127]]$<br>$B = [[127, 127], [127, 127]]$ | $C = [[32258, 32258], [32258, 32258]]$ | `PASS` |
+| **TC_08** | Minimum Value | Tests sign-extension and accumulator range with min INT8 negative values (`-128`). | $A = [[-128, -128], [-128, -128]]$<br>$B = [[-128, -128], [-128, -128]]$ | $C = [[32768, 32768], [32768, 32768]]$ | `PASS` |
 
 ---
