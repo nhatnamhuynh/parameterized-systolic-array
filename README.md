@@ -1,4 +1,4 @@
-# SYSTOLIC ARRAY 2x2 FOR MATRIX MULTIPLICATION
+# PARAMETERIZED SYSTOLIC ARRAY FOR MATRIX MULTIPLICATION
 
 ![Language](https://img.shields.io/badge/Language-Verilog%20HDL-blue.svg)
 ![Tools](https://img.shields.io/badge/Tools-Xilinx%20Vivado-orange.svg)
