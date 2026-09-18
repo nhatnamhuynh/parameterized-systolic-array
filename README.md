@@ -14,7 +14,7 @@
 ### 2.1. Hierarchy Design
 The hierarchy design is divided into 3 levels:
 
-![systolic array hierarchy](Picture/hierarchy.png)
+![systolic array hierarchy](Figure/hierarchy.svg)
 
 ### 2.2. Signal specification
 | Signal Name | Width | Description |
