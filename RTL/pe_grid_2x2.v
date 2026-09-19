@@ -45,6 +45,7 @@ module pe_grid # (
         for (i = 0; i < N; i = i + 1) begin
             assign data_row[i][0] = row_in[i * DATA_WIDTH + DATA_WIDTH - 1:i * DATA_WIDTH];
             assign data_col[0][i] = col_in[i * DATA_WIDTH + DATA_WIDTH - 1:i * DATA_WIDTH];
+            assign result_in[i][0] = {ACC_WIDTH{1'b0}}; 
             assign result_out_row[i * DATA_WIDTH + DATA_WIDTH - 1:i * DATA_WIDTH] = result_in[i][N];
         end
     endgenerate
