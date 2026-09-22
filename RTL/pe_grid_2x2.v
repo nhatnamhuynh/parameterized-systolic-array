@@ -1,7 +1,7 @@
 module pe_grid # (
     parameter N = 2,
     parameter DATA_WIDTH = 8,
-    parameter ACC_WIDTH = N * DATA_WIDTH + 1
+    parameter ACC_WIDTH = 2 * DATA_WIDTH + $clog2(N)
 )   (
     input wire clk, g_rst, g_clr, g_en,
     input wire [N * DATA_WIDTH - 1:0] row_in, col_in,
@@ -9,7 +9,7 @@ module pe_grid # (
 );
 
     // initialize wire grids
-    wire [DATA_WIDTH:0] data_row [0:N][0:N], data_col[0:N][0:N];
+    wire [DATA_WIDTH - 1:0] data_row [0:N][0:N], data_col[0:N][0:N];
     wire rst_row [0:N][0:N], rst_col [0:N][0:N];
     wire clr_row [0:N ][0:N], clr_col [0:N][0:N];
     wire en_row [0:N][0:N], en_col [0:N][0:N];
@@ -46,13 +46,14 @@ module pe_grid # (
             assign data_row[i][0] = row_in[i * DATA_WIDTH + DATA_WIDTH - 1:i * DATA_WIDTH];
             assign data_col[0][i] = col_in[i * DATA_WIDTH + DATA_WIDTH - 1:i * DATA_WIDTH];
             assign result_in[i][0] = {ACC_WIDTH{1'b0}}; 
-            assign result_out_row[i * DATA_WIDTH + DATA_WIDTH - 1:i * DATA_WIDTH] = result_in[i][N];
+            assign result_out_row[i * ACC_WIDTH +:ACC_WIDTH] = result_in[i][N];
+            assign en_row[i][0] = g_en;
+            assign en_col[0][i] = g_en;
         end
     endgenerate
     
     // connect global control signals
-    assign rst.pe[0][0] = g_rst;
-    assign clr.pe[0][0] = g_clr;
-    assign en.pe[0][0] = g_en;
+//    assign rst.pe[0][0] = g_rst;
+//    assign clr.pe[0][0] = g_clr;
     
 endmodule
