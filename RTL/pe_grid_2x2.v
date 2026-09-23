@@ -3,8 +3,9 @@ module pe_grid # (
     parameter DATA_WIDTH = 8,
     parameter ACC_WIDTH = 2 * DATA_WIDTH + $clog2(N)
 )   (
-    input wire clk, rst, clr, g_en, ready,
+    input wire clk, rst, clr, en, ready,
     input wire [N * DATA_WIDTH - 1:0] row_in, col_in,
+    input wire [N - 1:0] en_first_row, en_first_col,
     output wire [N * ACC_WIDTH - 1:0] result_out_row
 );
 
@@ -41,8 +42,8 @@ module pe_grid # (
             assign data_col[0][i] = col_in[i * DATA_WIDTH + DATA_WIDTH - 1:i * DATA_WIDTH];
             assign result_in[0][i] = {ACC_WIDTH{1'b0}}; 
             assign result_out_row[i * ACC_WIDTH +:ACC_WIDTH] = result_in[N][i];
-            assign en_row[i][0] = g_en;
-            assign en_col[0][i] = g_en;
+            assign en_row[i][0] = en_first_row[i];
+            assign en_col[0][i] = en_first_col[i];
         end
     endgenerate
     

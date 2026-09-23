@@ -5,7 +5,7 @@ module systolic_array_top #(
     
 ) (
     input wire [N * N * DATA_WIDTH - 1:0] inA_flat, inB_flat, 
-    input wire clk, rst, g_en,
+    input wire clk, rst, en,
     output wire [N * N * ACC_WIDTH - 1:0] result_out,
     output wire ready
 );
@@ -15,6 +15,7 @@ module systolic_array_top #(
     wire [N * DATA_WIDTH - 1:0] row_in_flat, col_in_flat;
     wire [N * ACC_WIDTH - 1:0] result_out_row;
     reg [N * N * ACC_WIDTH - 1:0] result_reg;
+    reg [N - 1:0] en_first_row, en_first_col;
     
     genvar i, j;
     integer k, l;
@@ -41,11 +42,16 @@ module systolic_array_top #(
 
         end else begin
             clr <= 1'b0;
-            if (g_en && counter == 0) begin
+            if (en && counter == 0) begin
                 for (k = 0; k < N; k = k + 1) begin
                     temp_row[k] <= inA_flat[k * N * DATA_WIDTH +: N * DATA_WIDTH];
                     for (l = 0; l < N; l = l + 1) begin
                         temp_col[k][l * DATA_WIDTH +: DATA_WIDTH] <= inB_flat[l * N * DATA_WIDTH + k * DATA_WIDTH +:DATA_WIDTH];
+                    end
+                    
+                    if (k < counter) begin
+                        en_first_row[k] = 1'b1;
+                        en_first_col[k] = 1'b1;
                     end
                 end
                 
@@ -54,15 +60,26 @@ module systolic_array_top #(
                 
             end else begin
                 for (k = 0; k < N; k = k + 1) begin
-                    if (k < counter) begin
+                    if (k < counter - 1) begin
                         temp_row[k] <= {{DATA_WIDTH{1'b0}}, temp_row[k][N * DATA_WIDTH - 1:DATA_WIDTH]};
                         temp_col[k] <= {{DATA_WIDTH{1'b0}}, temp_col[k][N * DATA_WIDTH - 1:DATA_WIDTH]};
+                    end
+                    
+                    if (k < counter) begin
+                        en_first_row[k] = 1'b1;
+                        en_first_col[k] = 1'b1;
                     end
                 end
                 
                 result_reg <= {result_reg[(N - 1) * N * ACC_WIDTH - 1 : 0], result_out_row};
                 
-                if (counter > 3 * N) counter <= 0;
+                if (counter > 3 * N) begin
+                    counter <= 0;
+                    for (k = 0; k < N; k = k + 1) begin
+                        en_first_row[k] = 1'b0;
+                        en_first_col[k] = 1'b0;
+                    end
+                end                
                 else if (counter > 0) begin
                     counter <= counter + 1;
                 end
@@ -80,7 +97,8 @@ module systolic_array_top #(
     assign result_out = result_reg;
     
     pe_grid pe_grid (
-    .clk(clk), .rst(rst), .clr(clr), .g_en(g_en), .ready(internal_ready),
+    .clk(clk), .rst(rst), .clr(clr), .en(en), .ready(internal_ready),
+    .en_first_row(en_first_row), .en_first_col(en_first_col), 
     .row_in(row_in_flat), .col_in(col_in_flat),
     .result_out_row(result_out_row)
 );
