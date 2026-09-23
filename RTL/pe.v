@@ -13,6 +13,8 @@ module pe #(
     output reg [ACC_WIDTH - 1: 0] result_out
 );
     reg [ACC_WIDTH - 1:0] pe_acc;
+    reg [ACC_WIDTH - 1:0] mul_reg;
+    reg mul_ready;
 
     wire main_en;
     assign main_en = (en_row_in & en_col_in)? 1'b1:1'b0;
@@ -26,21 +28,31 @@ module pe #(
             col_out <= {DATA_WIDTH {1'b0}};
             result_out <= {ACC_WIDTH{1'b0}};
             pe_acc <= {ACC_WIDTH{1'b0}};
+            mul_reg <= {ACC_WIDTH{1'b0}};
+            mul_ready <= 1'b0;
         end else begin
             
             if (clr) begin
                 pe_acc <= {ACC_WIDTH{1'b0}};
+            end else if (mul_ready) begin
+                pe_acc <= $signed(pe_acc) + $signed(mul_reg);
             end
 
             if (main_en) begin
-                pe_acc <= $signed(pe_acc) + $signed(row_in) * $signed(col_in);
+                mul_reg <= $signed(row_in) * $signed(col_in);
+                mul_ready <= 1'b1;
+
                 en_row_out <= en_row_in;
                 en_col_out <= en_col_in;
                 row_out <= row_in;
                 col_out <= col_in;
                 
             end else begin
-                pe_acc <= pe_acc;
+                mul_ready <= 1'b0;
+                en_row_out <= 1'b0;
+                en_col_out <= 1'b0;
+                row_out <= {DATA_WIDTH {1'b0}};
+                col_out <= {DATA_WIDTH {1'b0}};
             end
 
             if (ready) begin
