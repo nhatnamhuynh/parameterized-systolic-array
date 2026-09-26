@@ -21,24 +21,24 @@ The hierarchy design is divided into 3 levels:
 | :--- | :---: | :--- |
 | `clk` / `rst`/`en` | 1-bit | Global clock, active-HIGH synchronous reset, and active-HIGH enable signal. |
 | `ready` | 1-bit | End of execution flag. |
-| `inA_flat` / `inB_flat` | 32-bit | Input matrices, flattened into a little-endian vectors. |
-| `acc_out_0`, `acc_out_1`, `acc_out_2`, `acc_out_3` | 17-bit | Entries of resulting matrix. |
+| `inA_flat` / `inB_flat` | N * N * DATA_WIDTH | Input matrices, flattened into a little-endian vector. |
+| `result_out` | N * N * ACC_WIDTH | Resulting matrix, flattened into a little-endian vector. |
 
 ### 2.3. System Workflow
 The top module controls the whole execution following these steps:
 1. Receive `en` signal, clear current results, load input matrices into each row/col data registers with designated order. Higher-indexed rows/cols have padding zeros to wait for the previous to enter the array.
 2. Execution begins and data starts flowing. Each PEs multiplies, accumulates and passes data to the next one, from upper left to lower right.
-3. Internal `counter` variable increments after each clock cycle until reaching 4. Afterwards, it resets back to zero, `ready` signal goes high to indicate that output matrix is available.
+3. Internal `counter` variable increments after each clock cycle until reaching *3N + 1*. Afterwards, it resets back to zero, `ready` signal goes high to indicate that output matrix is available.
 4. The system comes to IDLE state, waiting for the next multiplication to be enabled.
 
 The table below summerizes the operations during each cycle.
 
 | `counter` | Action | Data Input State | `clr` | `ready` |
 | :---: | :--- | :--- | :---: | :---: |
-| 0 | **IDLE** | Wait for `en` signal | `1'b0` | `1'b1` |
-| 1 | **Latch & Skew** | Latch inputs; send $a_{00}, b_{00}$; zero-pad higher rows/cols | `1'b1` | `1'b0` |
-| 2/3 | **Compute & Shift** | Shift `temp_row` and `temp_col` into PE grid | `1'b0` | `1'b0` |
-| 4 | **Done** | Last accumulation; reset counter | `1'b0` | `1'b0` |
+| *0* | **IDLE** | Wait for `en` signal | `1'b0` | `1'b1` |
+| *1* | **Latch & Skew** | Latch inputs; send $a_{00}, b_{00}$; assert `clr` | `1'b1` | `1'b0` |
+| *2 -> 3N* | **Compute & Shift** | Shift `temp_row` and `temp_col` into PE grid | `1'b0` | `1'b0` |
+| *3N + 1* | **Done** | Last accumulation; reset counter | `1'b0` | `1'b0` |
 
 ---
 
@@ -51,7 +51,9 @@ systolic-array-2x2/
 │   ├── pe_grid_2x2.v
 │   └── pe.v
 ├── Testbench/                             
-│   ├── systolic_array_tb.v                    
+│   ├── systolic_array_2x2_tb.v
+│   ├── systolic_array_4x4_tb.v
+│   ├── systolic_array_16x16_tb.v
 │   ├── grid_tb.v
 │   └── pe_tb.v
 ├── Figure/
@@ -79,6 +81,8 @@ systolic-array-2x2/
 | **TC_06** | Enable Signal | Tests `en` disable logic mid-execution to ensure input latching integrity. | Ignores input updates when `en=0` (`ready` low) | Retains $C = [[1, 0], [0, 1]]$ | `PASSED` |
 | **TC_07** | Maximum Value | Verifies 17-bit accumulator overflow protection with max INT8 positive values (`+127`). | $A = [[127, 127], [127, 127]]$<br>$B = [[127, 127], [127, 127]]$ | $C = [[32258, 32258], [32258, 32258]]$ | `PASSED` |
 | **TC_08** | Minimum Value | Tests sign-extension and accumulator range with min INT8 negative values (`-128`). | $A = [[-128, -128], [-128, -128]]$<br>$B = [[-128, -128], [-128, -128]]$ | $C = [[32768, 32768], [32768, 32768]]$ | `PASSED` |
+| **TC_09** |  |  | | | `PASSED` |
+| **TC_10** |  |  |  |  | `PASSED` |
 
 ---
 
@@ -132,7 +136,7 @@ cd systolic-array-2x2
    * Set `systolic_array_top.v` as the Top Module.
 5. Select your target FPGA board/part and click **Finish**.
 6. **Add Simulation Sources:** In the Vivado **Sources** panel, expand **Simulation Sources** -> Right-click the `sim_1` -> **Add Sources...**.
-   * Click **Add Files** and select all `.v` files inside the `Testbench/` directory (`pe_tb.v`, `pe_grid_tb`, `systolic_array_tb.v`).
+   * Click **Add Files** and select all `.v` files inside the `Testbench/` directory (`pe_tb.v`, `pe_grid_tb`, `systolic_array_2x2_tb.v`, `systolic_array_4x4_tb.v`, `systolic_array_16x16_tb.v`).
 
 ---
 
