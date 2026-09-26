@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module pe_grid # (
-    parameter N = 16,
+    parameter N = 2,
     parameter DATA_WIDTH = 8,
     parameter ACC_WIDTH = 2 * DATA_WIDTH + $clog2(N)
 )   (
