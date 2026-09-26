@@ -5,7 +5,7 @@
 ![Type](https://img.shields.io/badge/Type-Hardware%20Accelerator-green.svg)
 
 ## 1. Introduction
-**Systolic Array** is an architecture that consists of multiple processing units (PEs). These PEs operate simultaneously and pass data to their neighbors, forming a system that works rhythmically. In this project, we implement a 2x2 matrix multiplier using systolic workflow, featuring 4 Multiply-Accumulate (MAC) processing elements. This design allows total operating time to decrease significantly compared to sequential methods. Additionally, the module is scalable for further projects that require matrix multiplication with $2^n$ dimensions.
+**Systolic Array** is an architecture that consists of multiple processing units (PEs). These PEs operate simultaneously and pass data to their neighbors, forming a system that works rhythmically. In this project, we implement a parameterized matrix multiplier using systolic workflow, featuring N x N Multiply-Accumulate (MAC) processing elements. This design allows total operating time to decrease significantly compared to sequential methods. Additionally, the module is scalable for further projects that require matrix multiplication with $2^n$ dimensions.
 
 --- 
 
@@ -26,7 +26,7 @@ The hierarchy design is divided into 3 levels:
 
 ### 2.3. System Workflow
 The top module controls the whole execution following these steps:
-1. Receive `en` signal, clear current results, load input matrices into each row/col data registers with designated order. Higher-indexed rows/cols have padding zeros to wait for the previous to enter the array.
+1. Receive `en` signal, clear current results, load input matrices into each row/col data registers with designated order. Higher-indexed rows/cols wait for the previous to enter the array.
 2. Execution begins and data starts flowing. Each PEs multiplies, accumulates and passes data to the next one, from upper left to lower right.
 3. Internal `counter` variable increments after each clock cycle until reaching *3N + 1*. Afterwards, it resets back to zero, `ready` signal goes high to indicate that output matrix is available.
 4. The system comes to IDLE state, waiting for the next multiplication to be enabled.
@@ -36,19 +36,19 @@ The table below summerizes the operations during each cycle.
 | `counter` | Action | Data Input State | `clr` | `ready` |
 | :---: | :--- | :--- | :---: | :---: |
 | *0* | **IDLE** | Wait for `en` signal | `1'b0` | `1'b1` |
-| *1* | **Latch & Skew** | Latch inputs; send $a_{00}, b_{00}$; assert `clr` | `1'b1` | `1'b0` |
+| *1* | **Latch & Skew** | Latch inputs; assert `clr` | `1'b1` | `1'b0` |
 | *2 -> 3N* | **Compute & Shift** | Shift `temp_row` and `temp_col` into PE grid | `1'b0` | `1'b0` |
-| *3N + 1* | **Done** | Last accumulation; reset counter | `1'b0` | `1'b0` |
+| *3N + 1* | **Done** | Last accumulation; reset counter; assert `ready` flag | `1'b0` | `1'b0` |
 
 ---
 
 ## 3. Code Tree
 
 ```text
-systolic-array-2x2/
+parameterized-systolic-array/
 ├── RTL/
 │   ├── systolic_array_top.v                    
-│   ├── pe_grid_2x2.v
+│   ├── pe_grid.v
 │   └── pe.v
 ├── Testbench/                             
 │   ├── systolic_array_2x2_tb.v
@@ -77,7 +77,7 @@ systolic-array-2x2/
 | **TC_02** | Basic Matrices | Validates standard 2x2 matrix multiplication. | $A = [[1, 2], [3, 4]]$<br>$B = [[4, 3], [2, 1]]$ | $C = [[8, 5], [20, 13]]$ | `PASSED` |
 | **TC_03** | Zero Matrix | Verifies zero property <br>($A \times 0 = 0$). | $A = [[1, 2], [3, 4]]$<br>$B = [[0, 0], [0, 0]]$ | $C = [[0, 0], [0, 0]]$ | `PASSED` |
 | **TC_04** | Identity Matrix | Verifies identity matrix property <br>($A \times I_2 = A$). | $A = [[1, 2], [3, 4]]$<br>$B = [[1, 0], [0, 1]]$ | $C = [[1, 2], [3, 4]]$ | `PASSED` |
-| **TC_05** | Inverse Matrix | Validates 2's complement negative values <br>($A \times A^{-1} = I_2$). | $A = [[1, 2], [2, 3]]$<br>$B = [[-3, 2], [2, -1]]$ | $C = [[1, 0], [0, 1]]$ | `PASSED` |
+| **TC_05** | Inverse Matrix | Validates inverse matrix property and 2's complement negative values <br>($A \times A^{-1} = I_2$). | $A = [[1, 2], [2, 3]]$<br>$B = [[-3, 2], [2, -1]]$ | $C = [[1, 0], [0, 1]]$ | `PASSED` |
 | **TC_06** | Enable Signal | Tests `en` disable logic mid-execution to ensure input latching integrity. | Ignores input updates when `en=0` (`ready` low) | Retains $C = [[1, 0], [0, 1]]$ | `PASSED` |
 | **TC_07** | Maximum Value | Verifies 17-bit accumulator overflow protection with max INT8 positive values (`+127`). | $A = [[127, 127], [127, 127]]$<br>$B = [[127, 127], [127, 127]]$ | $C = [[32258, 32258], [32258, 32258]]$ | `PASSED` |
 | **TC_08** | Minimum Value | Tests sign-extension and accumulator range with min INT8 negative values (`-128`). | $A = [[-128, -128], [-128, -128]]$<br>$B = [[-128, -128], [-128, -128]]$ | $C = [[32768, 32768], [32768, 32768]]$ | `PASSED` |
@@ -107,7 +107,7 @@ systolic-array-2x2/
 
 ## 6. Demo instruction
 
-This project includes unit testbenches for individual RTL modules and a top-level CPU testbench running all program testcases (`systolic_array_tb.v`). Test results are automatically verified via terminal and signals can be tracked from waveform.
+This project includes unit testbenches for PE, PE grid, and three top-level testbenches running all testcases. Test results are automatically verified via terminal and signals can be tracked from waveform.
 
 ### Prerequisites
 
@@ -120,8 +120,8 @@ This project includes unit testbenches for individual RTL modules and a top-leve
 Open your terminal or command prompt and clone the repository:
 
 ```bash
-git clone [https://github.com/nhatnamhuynh/systolic-array-2x2.git](https://github.com/nhatnamhuynh/systolic-array-2x2.git)
-cd systolic-array-2x2
+git clone [https://github.com/nhatnamhuynh/parameterized-systolic-array.git](https://github.com/nhatnamhuynh/parameterized-systolic-array.git)
+cd parameterized-systolic-array
 ```
 
 ---
@@ -140,7 +140,7 @@ cd systolic-array-2x2
 
 ---
 
-### Step 3: Run Unit Tests (Module-Level)
+### Step 3: Run Unit Tests
 
 To test individual modules:
 
@@ -153,13 +153,13 @@ To test individual modules:
 
 ---
 
-### Step 4: Run CPU Tests (Top-Level)
+### Step 4: Run Top-level Tests
 
 To verify complete execution across the entire pipeline:
 
-1. In **Simulation Sources**, right-click `systolic_array_tb.v` and select **Set as Top**.
+1. In **Simulation Sources**, right-click `systolic_array_2x2_tb.v` and select **Set as Top**.
 2. Click **Run Simulation** -> **Run Behavioral Simulation**.
 3. Observe the **Tcl Console Output**:
    * Review the terminal output logs for pass/fail status.
 4. **Inspect CPU Waveforms:**
-   * Key signals to add to the Waveform viewer: `clk`, `rst`, `clr`, `ready`, `inA`, `inB`, `acc_out_*`.
+   * Key signals to add to the Waveform viewer: `clk`, `rst`, `clr`, `ready`, `inA_flat`, `inB_flat`, `result_out`.
