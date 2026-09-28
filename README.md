@@ -87,8 +87,9 @@ parameterized-systolic-array/
 | **TC_06** | Enable Signal | Tests `en` disable logic mid-execution to ensure input latching integrity. | Ignores input updates when `en=0` (`ready` low) | Retains $C = [[1, 0], [0, 1]]$ | `PASSED` |
 | **TC_07** | Maximum Value | Verifies 17-bit accumulator overflow protection with max INT8 positive values (`+127`). | $A = [[127, 127], [127, 127]]$<br>$B = [[127, 127], [127, 127]]$ | $C = [[32258, 32258], [32258, 32258]]$ | `PASSED` |
 | **TC_08** | Minimum Value | Tests sign-extension and accumulator range with min INT8 negative values (`-128`). | $A = [[-128, -128], [-128, -128]]$<br>$B = [[-128, -128], [-128, -128]]$ | $C = [[32768, 32768], [32768, 32768]]$ | `PASSED` |
-| **TC_09** |  |  | | | `PASSED` |
-| **TC_10** |  |  |  |  | `PASSED` |
+| **TC_09** | Identity Matrix (4x4) | Verifies identity matrix property <br>($A \times I_4 = A$). | $A =$ <br> $[[1, 1, 0, 2], $<br>$ [2, 0, 1, 1], $<br>$ [0, 1, 3, 2], $<br>$ [1, 2, 1, 0]]$ <br>
+$B =$ <br> $[[1, 0, 0, 0], $<br>$ [0, 1, 0, 0], $<br>$ [0, 0, 1, 0], $<br>$ [0, 0, 0, 1]]$ | $C =$ <br> $[[1, 1, 0, 2], $<br>$ [2, 0, 1, 1], $<br>$ [0, 1, 3, 2], $<br>$ [1, 2, 1, 0]]$ | `PASSED` |
+| **TC_10** | Identity Matrix (16x16) | Verifies identity matrix property <br>($A \times I_{16} = A$). |  |  | `PASSED` |
 
 ---
 
