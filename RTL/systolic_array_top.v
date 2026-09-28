@@ -1,81 +1,89 @@
+`timescale 1ns / 1ps
+
 module systolic_array_top #(
+    parameter N = 16,
     parameter DATA_WIDTH = 8,
-    parameter ACC_WIDTH = 2 * DATA_WIDTH + 1
+    parameter ACC_WIDTH = 2 * DATA_WIDTH + $clog2(N)
+    
 ) (
-    input wire [4 * DATA_WIDTH - 1:0] inA_flat, inB_flat,
+    input wire [N * N * DATA_WIDTH - 1:0] inA_flat, inB_flat, 
     input wire clk, rst, en,
-    output wire [ACC_WIDTH - 1:0] acc_out_0, acc_out_1, acc_out_2, acc_out_3,
+    output wire [N * N * ACC_WIDTH - 1:0] result_out,
     output wire ready
 );
+    wire [N * DATA_WIDTH - 1:0] row_in_flat, col_in_flat;
     reg clr;
-    reg [2 * DATA_WIDTH - 1:0] temp_row_0, temp_row_1, temp_col_0, temp_col_1;
-    reg [DATA_WIDTH - 1:0] row_in_0, row_in_1, col_in_0, col_in_1;
-    reg [2:0] counter;
+    reg [$clog2(3 * N + 2) - 1 : 0] counter = 0;
+    reg [N * DATA_WIDTH - 1:0] temp_row[0:N - 1], temp_col[0:N - 1];
+    reg [N - 1:0] en_first_row, en_first_col;
     
-    wire [DATA_WIDTH - 1:0] inA [0:3];
-    wire [DATA_WIDTH - 1:0] inB [0:3];
-
-    assign inA[0] = inA_flat[1 * DATA_WIDTH - 1 : 0 * DATA_WIDTH];
-    assign inA[1] = inA_flat[2 * DATA_WIDTH - 1 : 1 * DATA_WIDTH];
-    assign inA[2] = inA_flat[3 * DATA_WIDTH - 1 : 2 * DATA_WIDTH];
-    assign inA[3] = inA_flat[4 * DATA_WIDTH - 1 : 3 * DATA_WIDTH];
-
-    assign inB[0] = inB_flat[1 * DATA_WIDTH - 1 : 0 * DATA_WIDTH];
-    assign inB[1] = inB_flat[2 * DATA_WIDTH - 1 : 1 * DATA_WIDTH];
-    assign inB[2] = inB_flat[3 * DATA_WIDTH - 1 : 2 * DATA_WIDTH];
-    assign inB[3] = inB_flat[4 * DATA_WIDTH - 1 : 3 * DATA_WIDTH];
-
-    assign ready = (counter == 3'd0)?1'b1:1'b0;
+    genvar i, j;
+    integer k, l;
+    
+    assign ready = (counter == 0)?1'b1:1'b0;
 
     always @(posedge clk, posedge rst) begin
         if (rst) begin
             clr <= 1'b1;
-            counter <= 3'd0;
+            counter <= 0;
             
-            temp_row_0 <= {2 * DATA_WIDTH{1'b0}};
-            temp_row_1 <= {2 * DATA_WIDTH{1'b0}};
-            temp_col_0 <= {2 * DATA_WIDTH{1'b0}};
-            temp_col_1 <= {2 * DATA_WIDTH{1'b0}};
-            
-            row_in_0 <= {DATA_WIDTH{1'b0}};
-            row_in_1 <= {DATA_WIDTH{1'b0}};
-            col_in_0 <= {DATA_WIDTH{1'b0}};
-            col_in_1 <= {DATA_WIDTH{1'b0}};
-        end else if (en == 1'b1 && counter == 3'd0) begin
-            clr <= 1'b1;
-            counter <= counter + 3'd1;
-            
-            row_in_0 <= inA[0];
-            row_in_1 <= {DATA_WIDTH{1'b0}};
-            col_in_0 <= inB[0];
-            col_in_1 <= {DATA_WIDTH{1'b0}};
-            
-            temp_row_0 <= {{DATA_WIDTH{1'b0}}, inA[1]};
-            temp_row_1 <= {inA[3], inA[2]};
-            temp_col_0 <= {{DATA_WIDTH{1'b0}}, inB[2]};
-            temp_col_1 <= {inB[3], inB[1]};
-        end else if (counter > 3'd0) begin   
-            clr <= 1'b0;  
-            if (counter >= 3'd4) counter <= 3'd0;
-            else counter <= counter + 3'd1;
-            
-            row_in_0 <= temp_row_0[DATA_WIDTH - 1:0]; 
-            row_in_1 <= temp_row_1[DATA_WIDTH - 1:0]; 
-            col_in_0 <= temp_col_0[DATA_WIDTH - 1:0]; 
-            col_in_1 <= temp_col_1[DATA_WIDTH - 1:0]; 
-            
-            temp_row_0 <= temp_row_0 >> DATA_WIDTH;
-            temp_row_1 <= temp_row_1 >> DATA_WIDTH;
-            temp_col_0 <= temp_col_0 >> DATA_WIDTH;
-            temp_col_1 <= temp_col_1 >> DATA_WIDTH;
-        end
+            for (k = 0; k < N; k = k + 1) begin
+                temp_row[k] <= {N * DATA_WIDTH{1'b0}};
+                temp_col[k] <= {N * DATA_WIDTH{1'b0}};
+            end
+
+        end else begin
+            clr <= 1'b0;
+            if (en && counter == 0) begin
+                for (k = 0; k < N; k = k + 1) begin
+                    temp_row[k] <= inA_flat[k * N * DATA_WIDTH +: N * DATA_WIDTH];
+                    for (l = 0; l < N; l = l + 1) begin
+                        temp_col[k][l * DATA_WIDTH +: DATA_WIDTH] <= inB_flat[l * N * DATA_WIDTH + k * DATA_WIDTH +:DATA_WIDTH];
+                    end
+                end
+                
+                clr <= 1'b1;
+                counter <= counter + 1;
+                
+            end else begin
+                for (k = 0; k < N; k = k + 1) begin
+                    if (k < counter - 1) begin
+                        temp_row[k] <= {{DATA_WIDTH{1'b0}}, temp_row[k][N * DATA_WIDTH - 1:DATA_WIDTH]};
+                        temp_col[k] <= {{DATA_WIDTH{1'b0}}, temp_col[k][N * DATA_WIDTH - 1:DATA_WIDTH]};
+                    end
+                    
+                    if (k < counter) begin
+                        en_first_row[k] = 1'b1;
+                        en_first_col[k] = 1'b1;
+                    end
+                end
+                
+                if (counter >= 3 * N + 1) begin
+                    counter <= 0;
+                    for (k = 0; k < N; k = k + 1) begin
+                        en_first_row[k] <= 1'b0;
+                        en_first_col[k] <= 1'b0;
+                    end
+                end                
+                else if (counter > 0) begin
+                    counter <= counter + 1;
+                end
+            end
+        end 
     end
     
-    pe_grid_2x2 grid (
-        .clk(clk), .rst(rst), .clr(clr),
-        .row_in_0(row_in_0), .row_in_1(row_in_1), 
-        .col_in_0(col_in_0), .col_in_1(col_in_1),
-        .acc_out_0(acc_out_0), .acc_out_1(acc_out_1), .acc_out_2(acc_out_2), .acc_out_3(acc_out_3)
-    );
+    generate
+        for (i = 0; i < N; i = i + 1) begin
+            assign row_in_flat[i * DATA_WIDTH +: DATA_WIDTH] = temp_row[i][DATA_WIDTH - 1:0];
+            assign col_in_flat[i * DATA_WIDTH +: DATA_WIDTH] = temp_col[i][DATA_WIDTH - 1:0];
+        end
+    endgenerate 
+    
+    pe_grid pe_grid (
+    .clk(clk), .rst(rst), .clr(clr), .en(en),
+    .en_first_row(en_first_row), .en_first_col(en_first_col), 
+    .row_in(row_in_flat), .col_in(col_in_flat),
+    .result_out(result_out)
+);
 
 endmodule
