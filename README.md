@@ -32,7 +32,7 @@ The hierarchy design is divided into 3 levels:
 
 ### 2.3. System Workflow
 The top module controls the whole execution following these steps:
-1. Receive `en` signal, clear current results, load input matrices into each row/col data registers with designated order. Higher-indexed rows/cols wait for the previous to enter the array.
+1. Receive `en` signal, clear current results, load input matrices into each row/col data registers with designated order. Higher-indexed rows/cols wait for the lower ones to enter the array.
 2. Execution begins and data starts flowing. Each PEs multiplies, accumulates and passes data to the next one, from upper left to lower right.
 3. Internal `counter` variable increments after each clock cycle until reaching *3N + 1*. Afterwards, it resets back to zero, `ready` signal goes high to indicate that output matrix is available.
 4. The system comes to IDLE state, waiting for the next multiplication to be enabled.
@@ -116,9 +116,6 @@ For an N x N matrix multiplication, the systolic array trades spatial area (N^2 
 ---
 
 ## 6. Synthesis Results
-
-* Target board: Arty Z7-20
-* Stage: Post-Implementation
 * Synthesis mode: Out-of-Context (OOC)
 
 | Metric | 2×2 Array (4 PEs) | 4×4 Array (16 PEs) | 16×16 Array (256 PEs) |
